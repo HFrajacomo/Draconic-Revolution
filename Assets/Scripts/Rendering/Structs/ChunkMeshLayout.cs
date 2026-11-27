@@ -73,8 +73,9 @@ public static class ChunkMeshLayout{
 
 /*
 Stream 1 of the render mesh. Field order must follow the VertexAttribute order of ChunkMeshLayout.render
-Normal and Tangent are SNorm8x4. UV (u, v, texture layer) and Light UV (natural light, extra light, dampness) are Float16x4,
-which keep their integer values exact. The unused 4th components are 1, the value shaders get for missing components
+Normal and Tangent are SNorm8x4. UV (u, v, texture layer) and Light UV (natural light, extra light, dampness, 1 + damage decal code) are Float16x4,
+which keep their integer values exact. The unused 4th component of UV is 1, the value shaders get for missing components.
+The decal code is only set on Objects (see DamageDecal), so blocks keep 1
 */
 [StructLayout(LayoutKind.Sequential)]
 public struct ChunkRenderVertex{
@@ -83,11 +84,11 @@ public struct ChunkRenderVertex{
 	public half4 uv;
 	public half4 lightUV;
 
-	public ChunkRenderVertex(Vector3 normal, Vector4 tangent, Vector3 uv, Vector3 lightUV){
+	public ChunkRenderVertex(Vector3 normal, Vector4 tangent, Vector3 uv, Vector4 lightUV){
 		this.normal = PackSNorm8(normal.x, normal.y, normal.z, 0f);
 		this.tangent = PackSNorm8(tangent.x, tangent.y, tangent.z, tangent.w);
 		this.uv = new half4(new float4(uv.x, uv.y, uv.z, 1f));
-		this.lightUV = new half4(new float4(lightUV.x, lightUV.y, lightUV.z, 1f));
+		this.lightUV = new half4(new float4(lightUV.x, lightUV.y, lightUV.z, lightUV.w));
 	}
 
 	// Packs 4 values in [-1, 1] as signed normalized bytes, x being the lowest byte

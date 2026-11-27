@@ -36,7 +36,7 @@ public class ChunkBuildSlot{
 	// Render Mesh
 	private NativeList<Vector3> verts;
 	private NativeList<Vector3> UVs;
-	private NativeList<Vector3> lightUV;
+	private NativeList<Vector4> lightUV;
 	private NativeList<Vector3> normals;
 	private NativeList<Vector4> tangents;
 	private NativeList<int> normalTris;
@@ -80,7 +80,7 @@ public class ChunkBuildSlot{
 	private NativeArray<Vector3> cacheCubeUV;
 	private NativeArray<Vector3> cacheCubeNormal;
 	private NativeArray<Vector4> cacheCubeTangent;
-	private NativeArray<Vector3> extraUV;
+	private NativeArray<Vector4> extraUV;
 
 	// Results
 	private NativeArray<Bounds> bounds;
@@ -116,7 +116,7 @@ public class ChunkBuildSlot{
 
 		this.verts = new NativeList<Vector3>(INITIAL_CAPACITY, Allocator.Persistent);
 		this.UVs = new NativeList<Vector3>(INITIAL_CAPACITY, Allocator.Persistent);
-		this.lightUV = new NativeList<Vector3>(INITIAL_CAPACITY, Allocator.Persistent);
+		this.lightUV = new NativeList<Vector4>(INITIAL_CAPACITY, Allocator.Persistent);
 		this.normals = new NativeList<Vector3>(INITIAL_CAPACITY, Allocator.Persistent);
 		this.tangents = new NativeList<Vector4>(INITIAL_CAPACITY, Allocator.Persistent);
 		this.normalTris = new NativeList<int>(INITIAL_CAPACITY, Allocator.Persistent);
@@ -154,7 +154,7 @@ public class ChunkBuildSlot{
 		this.cacheCubeUV = new NativeArray<Vector3>(4, Allocator.Persistent);
 		this.cacheCubeNormal = new NativeArray<Vector3>(4, Allocator.Persistent);
 		this.cacheCubeTangent = new NativeArray<Vector4>(4, Allocator.Persistent);
-		this.extraUV = new NativeArray<Vector3>(4, Allocator.Persistent);
+		this.extraUV = new NativeArray<Vector4>(4, Allocator.Persistent);
 
 		this.bounds = new NativeArray<Bounds>(WriteChunkMeshJob.MESH_COUNT, Allocator.Persistent);
 		this.indexCounts = new NativeArray<int>(WriteChunkMeshJob.MESH_COUNT, Allocator.Persistent);
@@ -282,7 +282,9 @@ public class ChunkBuildSlot{
 			light = this.light,
 			heights = this.heights,
 			state = this.state,
+			hp = this.hp,
 
+			objectHP = BlockEncyclopediaECS.objectHP,
 			scaling = BlockEncyclopediaECS.objectScaling,
 			hitboxScaling = BlockEncyclopediaECS.hitboxScaling,
 			needRotation = BlockEncyclopediaECS.objectNeedRotation,

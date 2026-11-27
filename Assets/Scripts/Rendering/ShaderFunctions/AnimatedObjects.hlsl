@@ -13,7 +13,7 @@ struct AnimatedObjectSlot{
     float4 row0;
     float4 row1;
     float4 row2;
-    float4 animation; // x = global animation (-1 = rest pose), y = start time, z = normalized time at start, w = packed light
+    float4 animation; // x = global animation (-1 = rest pose), y = start time, z = normalized time at start, w = packed light and damage decal
 };
 
 // Must follow AnimatedClipInfo.cs
@@ -100,6 +100,27 @@ void AnimatedObjectVertex_float(float3 positionOS, float3 normalOS, float3 tange
     natural = (float)(light & 0x0F);
     extra = (float)((light >> 4) & 0x0F);
     dampness = (float)((light >> 8) & 0x01);
+#endif
+}
+
+/*
+Inputs of DamageDecal (DamageDecal.hlsl) for a vertex of the Animated Objects mesh: its position and normal in the chunk in the rest pose,
+so the cracks stay on each part while it's animated, and the damage decal code of its Object (bits 9 to 11 of the packed light)
+*/
+void AnimatedObjectDecal_float(float3 positionOS, float3 normalOS, float2 partSlot, out float3 decalPosition, out float3 decalNormal, out float decal){
+#ifdef SHADERGRAPH_PREVIEW
+    decalPosition = positionOS;
+    decalNormal = normalOS;
+    decal = 0;
+#else
+    AnimatedObjectSlot slot = _AnimatedSlots[(uint)(partSlot.y + 0.5)];
+    float3x3 m = float3x3(slot.row0.xyz, slot.row1.xyz, slot.row2.xyz);
+    float3 transformedNormal = mul(m, normalOS);
+    float normalLength = length(transformedNormal);
+
+    decalPosition = mul(m, positionOS) + float3(slot.row0.w, slot.row1.w, slot.row2.w);
+    decalNormal = normalLength > 0.000001 ? transformedNormal / normalLength : float3(0, 1, 0);
+    decal = (float)(((uint)(slot.animation.w + 0.5) >> 9) & 0x07);
 #endif
 }
 

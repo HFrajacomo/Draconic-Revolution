@@ -41,7 +41,7 @@ public struct WriteChunkMeshJob : IJob{
 	[ReadOnly]
 	public NativeList<Vector3> UVs;
 	[ReadOnly]
-	public NativeList<Vector3> lightUV;
+	public NativeList<Vector4> lightUV;
 	[ReadOnly]
 	public NativeList<Vector3> normals;
 	[ReadOnly]

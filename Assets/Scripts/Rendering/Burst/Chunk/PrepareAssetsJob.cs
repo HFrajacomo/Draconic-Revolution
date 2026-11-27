@@ -24,7 +24,7 @@ public struct PrepareAssetsJob : IJob{
 	public NativeList<int> meshSolidTris;
 	public NativeList<Vector3> meshNormals;
 	public NativeList<Vector4> meshTangents;
-	public NativeList<Vector3> meshLightUV;
+	public NativeList<Vector4> meshLightUV; // w = 1 + damage decal code (see DamageDecal)
 
 	// Amount of block vertices, which come before the Object vertices in meshVerts
 	public NativeArray<int> blockVertexCount;
@@ -50,8 +50,12 @@ public struct PrepareAssetsJob : IJob{
 	public NativeArray<byte> heights; // Padded snapshot
 	[ReadOnly]
 	public NativeArray<ushort> state;
+	[ReadOnly]
+	public NativeArray<ushort> hp;
 
 	// Object Encyclopedia
+	[ReadOnly]
+	public NativeArray<ushort> objectHP;
 	[ReadOnly]
 	public NativeArray<Vector3> scaling;
 	[ReadOnly]
@@ -107,6 +111,9 @@ public struct PrepareAssetsJob : IJob{
 		Vector3 lightValue;
 		Vector3 localOffset;
 		int2 rotation;
+		int voxel;
+		int decal;
+		Vector4 lightUV;
 
 		for(int j=0; j < coords.Length; j++){
 			coord = coords[j];
@@ -116,24 +123,27 @@ public struct PrepareAssetsJob : IJob{
 				continue;
 
 			obj = ushort.MaxValue - code;
+			voxel = coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z;
 			vertPos = new Vector3(coord.x, coord.y+(this.pos.y*Chunk.chunkDepth), coord.z);
 			lightValue = new Vector3(GetLight(coord.x, coord.y, coord.z), GetLight(coord.x, coord.y, coord.z, isNatural:false), IsDamp(coord));
+			decal = DamageDecal.GetCode(hp[voxel], objectHP[obj]);
+			lightUV = new Vector4(lightValue.x, lightValue.y, lightValue.z, 1 + decal);
 
 			if(material[obj] == ShaderIndex.ANIMATED_OBJECTS){
-				hitboxVertAmount = AddAnimatedObject(coord, obj, vertPos, lightValue, hitboxVertAmount);
+				hitboxVertAmount = AddAnimatedObject(coord, obj, vertPos, lightValue, decal, hitboxVertAmount);
 				continue;
 			}
 
 			// If has special offset or rotation
 			if(needRotation[obj]){
-				GetStateTransform(obj, state[coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z], out localOffset, out rotation);
+				GetStateTransform(obj, state[voxel], out localOffset, out rotation);
 
 				// Normal Vertices
 				for(int vertIndex=vertsOffset[obj]; vertIndex < vertsOffset[obj+1]; vertIndex++){
 					meshVerts.Add(Vector3MultOffsetRotate(loadedVerts[vertIndex], scaling[obj], vertPos, localOffset, rotation));
 					meshNormals.Add(GetNormalRotation(loadedNormals[vertIndex], rotation));
 					meshTangents.Add(GetNormalRotation(loadedTangents[vertIndex], rotation));
-					meshLightUV.Add(lightValue);
+					meshLightUV.Add(lightUV);
 				}
 
 				// Hitbox Vertices
@@ -149,7 +159,7 @@ public struct PrepareAssetsJob : IJob{
 					meshVerts.Add(Vector3Mult(loadedVerts[vertIndex], scaling[obj], vertPos));
 					meshNormals.Add(loadedNormals[vertIndex]);
 					meshTangents.Add(loadedTangents[vertIndex]);
-					meshLightUV.Add(lightValue);
+					meshLightUV.Add(lightUV);
 				}
 
 				// Hitbox Vertices
@@ -185,8 +195,8 @@ public struct PrepareAssetsJob : IJob{
 		}
 	}
 
-	// Writes the hitbox and light of an Animated Object. Returns the amount of hitbox vertices after it
-	private int AddAnimatedObject(int3 coord, int obj, Vector3 vertPos, Vector3 lightValue, int hitboxVertAmount){
+	// Writes the hitbox, light and damage decal of an Animated Object. Returns the amount of hitbox vertices after it
+	private int AddAnimatedObject(int3 coord, int obj, Vector3 vertPos, Vector3 lightValue, int decal, int hitboxVertAmount){
 		int voxel = coord.x*Chunk.chunkWidth*Chunk.chunkDepth+coord.y*Chunk.chunkWidth+coord.z;
 		int solidVertAmount = solidHitboxVerts.Length;
 		bool isSolid = solid[obj];
@@ -214,7 +224,7 @@ public struct PrepareAssetsJob : IJob{
 				solidHitboxTris.Add(loadedHitboxTriangles[triIndex] + solidVertAmount);
 		}
 
-		animatedLight.Add(new int2(voxel, AnimatedSlot.PackLight((int)lightValue.x, (int)lightValue.y, (int)lightValue.z)));
+		animatedLight.Add(new int2(voxel, AnimatedSlot.PackLight((int)lightValue.x, (int)lightValue.y, (int)lightValue.z, decal)));
 
 		return hitboxVertAmount + (hitboxVertsOffset[obj+1] - hitboxVertsOffset[obj]);
 	}

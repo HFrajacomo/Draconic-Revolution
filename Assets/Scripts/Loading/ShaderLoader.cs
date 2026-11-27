@@ -21,6 +21,10 @@ public class ShaderLoader : BaseLoader {
 	// Brightness of Extra Lights (light blocks and moving lights), in nits. Their color comes from their realtime Point Lights
 	private static readonly float EXTRA_LIGHT_INTENSITY = 0.6f;
 
+	// Damage decals of Objects (see DamageDecal.hlsl). Same texture and opacity as the block decals (DecalMaterial)
+	private static readonly string DAMAGE_DECAL_TEXTURE_RESPATH = "decalTest";
+	private static readonly float DAMAGE_DECAL_OPACITY = 0.4f;
+
 
 	public ShaderLoader(bool client){
 		isClient = client;
@@ -33,6 +37,7 @@ public class ShaderLoader : BaseLoader {
 		if(isClient){
 			InitVoxelLightBuffer();
 			InitVoxelLightCurve();
+			InitDamageDecals();
 		}
 		return true;
 	}
@@ -65,5 +70,16 @@ public class ShaderLoader : BaseLoader {
 		Shader.SetGlobalVector("_VoxelShaftDirection", Vector3.up);
 		Shader.SetGlobalVector("_VoxelShaftAmbient", Vector4.zero);
 		Shader.SetGlobalFloat("_ExtraLightIntensity", EXTRA_LIGHT_INTENSITY);
+	}
+
+	private void InitDamageDecals(){
+		Texture2D texture = Resources.Load<Texture2D>(DAMAGE_DECAL_TEXTURE_RESPATH);
+
+		if(texture == null)
+			throw new DeserializationErrorException($"[ShaderLoader] Couldn't find the damage decal texture at Resources/{DAMAGE_DECAL_TEXTURE_RESPATH}");
+
+		Shader.SetGlobalTexture("_DamageDecalTexture", texture);
+		Shader.SetGlobalFloat("_DamageDecalOpacity", DAMAGE_DECAL_OPACITY);
+		Shader.SetGlobalFloat("_DamageDecalStages", Constants.DECAL_STAGE_SIZE);
 	}
 }

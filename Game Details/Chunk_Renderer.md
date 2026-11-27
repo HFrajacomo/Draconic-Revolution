@@ -105,7 +105,7 @@ The render mesh uses two vertex streams and 36 bytes per vertex (see `ChunkMeshL
 | 1 | Normal | SNorm8 x4 | Face or Object normal |
 | 1 | Tangent | SNorm8 x4 | Face or Object tangent |
 | 1 | UV0 | Float16 x4 | UV and texture layer |
-| 1 | UV3 | Float16 x4 | Natural light, extra light and dampness |
+| 1 | UV3 | Float16 x4 | Natural light, extra light, dampness and 1 + damage decal code (Objects only, see [Object Damage Decals](#object-damage-decals)) |
 
 Positions have their own stream, so depth and shadow passes only read 12 bytes per vertex. Light levels and texture layers are integers, which half floats store exactly. The GPU converts every attribute to floats, so shaders read them as usual.
 
@@ -128,6 +128,18 @@ Objects with `"shaderIndex": 8` (`ANIMATED_OBJECTS`) have animations, like the l
 **Playing animations:** Server hooks change the voxel state and send `VOXELANIMATION`. The client sets the state and calls `AnimatedObjectHandler.Play`, which writes the animation and `Time.time` into the slot. The voxel state defines the pose an Animated Object rests on (`BlocklikeObject.GetAnimationPose`, the last frame of an animation), so animations are never saved or replayed to clients that load the chunk later. Looping animations keep playing in their resting state, each voxel at its own phase.
 
 **Shader:** `AnimatedObjectVertex` in `Assets/Scripts/Rendering/ShaderFunctions/AnimatedObjects.hlsl` reads the slot of a vertex, interpolates the transform of its part between the two closest frames, then places it with the slot transform. It outputs the same Natural Light, Extra Light and dampness the Light UV has for Objects, so the AnimatedObjects Shader Graph lights them with `VoxelLightShade` like every other voxel. Its time comes from the Time node, which is `Time.time` in play mode, the clock used for start times. HDRP gives the previous frame's time to the motion vector pass, so the graph must have motion vectors for vertex animation on.
+
+## Object Damage Decals
+
+Damaged blocks get their cracks from quads in the chunk decal mesh, placed over their faces. Objects have any shape, so they get the same cracks in their own shaders instead, from the same texture (`Resources/decalTest.png`, one 32x32 stage per horizontal slice) and with the same opacity as `DecalMaterial`. `ShaderLoader` sets both as globals (`_DamageDecalTexture`, `_DamageDecalOpacity`, `_DamageDecalStages`).
+
+**Decal code:** `DamageDecal.GetCode` turns the HP of a voxel into 0 (undamaged) or its decal stage + 1, using the same stages as blocks (`Constants.DECAL_STAGE_PERCENTAGE`). `PrepareAssetsJob` writes it on every static build, which the client already runs when `BLOCKDAMAGE` changes a decal stage:
+ - Static Objects: in the Light UV (UV3) w, as 1 + decal code, so blocks and undamaged Objects keep the 1 every vertex had.
+ - Animated Objects: in bits 9 to 11 of the light packed in their slot (`AnimatedSlot.PackLight`), sent with their light by `ApplyLight`, so damage only writes the slot.
+
+**Shader:** `DamageDecal` in `Assets/Scripts/Rendering/ShaderFunctions/DamageDecal.hlsl` projects the stage on the voxel grid by the main axis of the surface normal and blends it over the albedo, so a face the size of a voxel gets the same cracks a block face gets. It uses chunk-relative positions (voxels are centered on integer coordinates), which stay exact far from the world origin.
+ - Objects and SolidObjects graphs: `DamageDecalUV`, with the Light UV (UV3) and the object space position and normal of the chunk mesh.
+ - AnimatedObjects graph: `AnimatedObjectDecal` (in `AnimatedObjects.hlsl`) outputs the position and normal of the vertex in its rest pose, placed by its slot, and the decal code. They reach the fragment through custom interpolators, so cracks stay on each part (like the lid of a Chest) while it's animated.
 
 ## Dropped Item Shadows
 
