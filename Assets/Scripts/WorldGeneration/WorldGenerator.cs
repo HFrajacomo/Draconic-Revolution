@@ -50,6 +50,7 @@ public class WorldGenerator
     private NativeArray<byte> caveMap;
     private NativeArray<byte> maskMap;
     private NativeArray<byte> blendMap;
+    private NativeArray<byte> warpMap;
 
     // Biome borders of the chunk whose structures are being generated
     private BiomeNeighborhood structureNeighborhood;
@@ -99,6 +100,7 @@ public class WorldGenerator
         caveMap = new NativeArray<byte>(GenerationSeed.caveNoise, Allocator.Persistent);
         maskMap = new NativeArray<byte>(GenerationSeed.cavemaskNoise, Allocator.Persistent);
         blendMap = new NativeArray<byte>(GenerationSeed.blendNoise, Allocator.Persistent);
+        warpMap = new NativeArray<byte>(GenerationSeed.warpNoise, Allocator.Persistent);
     }
 
     private void SetupGeneration(){
@@ -151,6 +153,7 @@ public class WorldGenerator
         this.caveMap.Dispose();
         this.maskMap.Dispose();
         this.blendMap.Dispose();
+        this.warpMap.Dispose();
 
         this.decorationHellBlock.Dispose();
         this.decorationSurfaceBlock.Dispose();
@@ -399,6 +402,7 @@ public class WorldGenerator
             baseNoise = baseMap,
             erosionNoise = erosionMap,
             peakNoise = peakMap,
+            warpNoise = warpMap,
             pregen = isPregen
         };
         JobHandle job = gcj.Schedule();
@@ -476,6 +480,7 @@ public class WorldGenerator
             caveNoise = caveMap,
             cavemaskNoise = maskMap,
             temperatureNoise = temperatureMap,
+            warpNoise = warpMap,
             hellMarbleBlockID = this.hellMarbleBlockID,
             acasterBlockID = this.acasterBlockID,
             pregen = isPregen
@@ -521,6 +526,7 @@ public class WorldGenerator
             baseNoise = baseMap,
             erosionNoise = erosionMap,
             peakNoise = peakMap,
+            warpNoise = warpMap,
             moonstoneBlockID = this.moonstoneBlockID,
             acasterBlockID = this.acasterBlockID,
             pregen = isPregen
@@ -545,6 +551,19 @@ public class WorldGenerator
 
         float[] biomeVector = this.cacheBiomeVector;
         Array.Clear(biomeVector, 0, biomeVector.Length);
+
+        // Surface, Hell and Core read the same values their terrain is built from, so biomes always match the terrain
+        if(cid != ChunkDepthID.UNDERGROUND){
+            TerrainSample sample = SampleTerrain(initialX, initialY, cid);
+
+            biomeVector[2] = sample.baseValue;
+            biomeVector[3] = sample.erosion;
+            biomeVector[4] = sample.peaksValleys;
+
+            // Climate is sampled after the base warp, so climate regions bend along with the land
+            initialX = sample.warped.x;
+            initialY = sample.warped.y;
+        }
 
 
         // Temperature Noise
@@ -636,6 +655,10 @@ public class WorldGenerator
                         Lerp(v2, Lerp(u, Grad(GenerationSeed.humidityNoise[A2  ], x2, y2  ), Grad(GenerationSeed.humidityNoise[B2  ], x2-1, y2  )),
                        Lerp(u2, Grad(GenerationSeed.humidityNoise[A2+1], x2, y2-1), Grad(GenerationSeed.humidityNoise[B2+1], x2-1, y2-1))));
 
+        if(cid != ChunkDepthID.UNDERGROUND)
+            return biomeVector;
+
+        // Underground keeps its original terrain values
         // Base Noise
         x = initialX*GenerationSeed.baseNoiseStep1;
         x -= Mathf.Floor(x);
@@ -726,6 +749,18 @@ public class WorldGenerator
                        Lerp(u2, Grad(GenerationSeed.peakNoise[A2+1], x2, y2-1), Grad(GenerationSeed.peakNoise[B2+1], x2-1, y2-1))));
 
         return biomeVector;
+    }
+
+    // Terrain values of a layer at a block column, the same ones its generation job uses
+    private TerrainSample SampleTerrain(float x, float z, ChunkDepthID cid){
+        switch(cid){
+            case ChunkDepthID.HELL:
+                return TerrainShape.SampleHell(x, z, this.baseMap, this.erosionMap, this.peakMap, this.temperatureMap, this.warpMap);
+            case ChunkDepthID.CORE:
+                return TerrainShape.SampleCore(x, z, this.baseMap, this.erosionMap, this.peakMap, this.warpMap);
+            default:
+                return TerrainShape.SampleSurface(x, z, this.baseMap, this.erosionMap, this.peakMap, this.warpMap);
+        }
     }
 
     private float Fade(float t)

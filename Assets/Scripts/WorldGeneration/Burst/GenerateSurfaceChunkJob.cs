@@ -23,6 +23,8 @@ public struct GenerateSurfaceChunkJob: IJob{
     public NativeArray<byte> erosionNoise;
     [ReadOnly]
     public NativeArray<byte> peakNoise;
+    [ReadOnly]
+    public NativeArray<byte> warpNoise;
 
     public void Execute(){
         int waterLevel = Constants.WORLD_WATER_LEVEL;
@@ -32,17 +34,13 @@ public struct GenerateSurfaceChunkJob: IJob{
     }
 
     public void GeneratePivots(){
-        float height;
-        float erosionMultiplier;
-        float peakAdd;
+        TerrainSample sample;
 
         for(int x=0; x <= Chunk.chunkWidth; x+=4){
             for(int z=0; z <= Chunk.chunkWidth; z+=4){
-                height = NoiseMaker.FindSplineHeight(TransformOctaves(NoiseMaker.Noise2D((chunkX*Chunk.chunkWidth+x)*GenerationSeed.baseNoiseStep1, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.baseNoiseStep1, baseNoise), (NoiseMaker.Noise2D((chunkX*Chunk.chunkWidth+x)*GenerationSeed.baseNoiseStep2, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.baseNoiseStep2, baseNoise))), NoiseMap.BASE, ChunkDepthID.SURFACE);
-                erosionMultiplier = NoiseMaker.FindSplineHeight(TransformOctaves(NoiseMaker.Noise2D((chunkX*Chunk.chunkWidth+x)*GenerationSeed.erosionNoiseStep1, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.erosionNoiseStep1, erosionNoise), NoiseMaker.Noise2D((chunkX*Chunk.chunkWidth+x)*GenerationSeed.erosionNoiseStep2, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.erosionNoiseStep2, erosionNoise)), NoiseMap.EROSION, ChunkDepthID.SURFACE);
-                peakAdd = NoiseMaker.FindSplineHeight(TransformOctaves(NoiseMaker.Noise2D((chunkX*Chunk.chunkWidth+x)*GenerationSeed.peakNoiseStep1, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.peakNoiseStep1, peakNoise), (NoiseMaker.Noise2D((chunkX*Chunk.chunkWidth+x)*GenerationSeed.peakNoiseStep2, (chunkZ*Chunk.chunkWidth+z)*GenerationSeed.peakNoiseStep2, peakNoise))), NoiseMap.PEAK, ChunkDepthID.SURFACE);
+                sample = TerrainShape.SampleSurface(chunkX*Chunk.chunkWidth+x, chunkZ*Chunk.chunkWidth+z, baseNoise, erosionNoise, peakNoise, warpNoise);
 
-                heightMap[x*(Chunk.chunkWidth+1)+z] = (ushort)(Mathf.CeilToInt((height + peakAdd) * erosionMultiplier));
+                heightMap[x*(Chunk.chunkWidth+1)+z] = (ushort)(Mathf.CeilToInt(sample.height));
             }
         }
     }
@@ -106,12 +104,5 @@ public struct GenerateSurfaceChunkJob: IJob{
                 }
             }             
         }
-    }
-    
-    // Calculates the cumulative distribution function of a Normal Distribution
-    private float TransformOctaves(float a, float b){
-        float c = (a+b)/2f;
-
-        return (2f/(1f + Mathf.Exp(-c*4.1f)))-1;
     }
 }

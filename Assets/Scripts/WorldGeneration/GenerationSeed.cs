@@ -119,6 +119,129 @@ public static class GenerationSeed
     public static readonly float blendWarpStep1 = 0.03f;
     public static readonly float blendWarpStep2 = 0.061f;
 
+    // Warp Noise: domain warping of the Surface, Hell and Core terrain (see TerrainShape)
+    public static byte[] warpNoise = new byte[257];
+
+    /*
+    Terrain Shape (see TerrainShape). Steps are frequencies (1/wavelength in blocks), amplitudes are in blocks.
+    A warp folds the terrain when amplitude*step goes above ~0.15
+    */
+    // ---- Surface
+    public static readonly float baseWarpStep = 0.000667f;          // ~1500 blocks
+    public static readonly float baseWarpAmplitude = 220f;
+    public static readonly float localWarpStep = 0.00385f;          // ~260 blocks
+    public static readonly float localWarpAmplitude = 36f;
+    public static readonly float baseStep = 0.000417f;              // ~2400 blocks
+    public static readonly float erosionStep = 0.000909f;           // ~1100 blocks
+    public static readonly float weirdnessStep = 0.00095f;          // ~1050 blocks, makes the Peaks and Valleys bands (lower = wider bands)
+    public static readonly float ridgeStep = 0.00435f;              // ~230 blocks, narrow (steep) mountains
+    public static readonly float wideRidgeStep = 0.0022f;           // ~450 blocks, wide (gentle) mountains
+    public static readonly float detailStep = 0.0278f;              // ~36 blocks
+    public static readonly float detailAmplitudeMin = 1.5f;
+    public static readonly float detailAmplitudeMax = 6f;
+    // Fbm values are bell shaped, these gains spread them back to a roughly uniform [-1, 1] (more octaves need a higher gain)
+    public static readonly float baseSpread = 4.9f;
+    public static readonly float erosionSpread = 4.7f;
+    public static readonly float weirdnessSpread = 5f;
+    // Base range where hills, valleys and mountains fade in from the coast
+    public static readonly float inlandStart = -0.25f;
+    public static readonly float inlandEnd = 0.05f;
+    public static readonly float mountainInlandStart = -0.05f;
+    public static readonly float mountainInlandEnd = 0.45f;
+    // Peaks and Valleys range where mountain ranges fade in
+    public static readonly float mountainBandStart = -0.2f;
+    public static readonly float mountainBandEnd = 0.6f;
+    // Ridged values below this become valley floors between crests
+    public static readonly float ridgeFloor = 0.2f;
+    // Heights above the soft cap are compressed smoothly towards the max height, so peaks never become flat plateaus
+    public static readonly float surfaceSoftCap = 210f;
+    public static readonly float surfaceMaxHeight = 240f;
+
+    /*
+    Base -> height. The coast (WORLD_WATER_LEVEL = 60) is around -0.14. Flat segments make plateaus and steep ones make cliff bands along the Base contours:
+        -1 to -0.6:     deep trenches rising to a flat abyssal plain
+        -0.42 to -0.3:  an undersea ridge running parallel to the coast
+        -0.24 to -0.16: continental slope and a shallow shelf
+        -0.13 to -0.08: wide, flat beaches and coastal lowlands just above the sea
+        0.08 to 0.18:   flat inland plains, ending in an escarpment (0.18 to 0.26)
+        0.34 to 0.46:   upland plateau
+        0.75 to 0.88:   high plateau before the highest inland terrain
+    */
+    public static readonly float[] baseHeightSplineX = new float[]{-1f, -0.85f, -0.7f, -0.6f, -0.5f, -0.42f, -0.36f, -0.3f, -0.24f, -0.19f, -0.16f, -0.13f, -0.08f, -0.02f, 0.08f, 0.18f, 0.26f, 0.34f, 0.46f, 0.75f, 0.88f, 1f};
+    public static readonly float[] baseHeightSplineY = new float[]{8f,  10f,    16f,   22f,   23f,   32f,    28f,    34f,   44f,    54f,    57f,    61f,    62f,    66f,    70f,   72f,   82f,   88f,   90f,   106f,  110f,  116f};
+
+    /*
+    Nested spline: one Peaks and Valleys -> height offset row per Erosion key. Higher Erosion = more rugged.
+    Valleys deeper than the land around them flood into long lakes and inlets. Each erosion range has its own landform:
+        -1 to -0.5:  gentle rolling plains
+        -0.3 to -0.1: low hills with a bench halfway down the valleys
+        0.1:          terraced hills, with flat steps on both slopes
+        0.3:          mesas: a cliff band (0 to 0.2) up to a flat top
+        0.5:          deep valleys and tall rounded hills
+        0.75:         canyons: narrow, flat floors with steep walls
+        1:            alpine: deepest valleys and the tallest peaks
+    */
+    public static readonly float[] peaksValleysErosionKeys = new float[]{-1f, -0.75f, -0.5f, -0.3f, -0.1f, 0.1f, 0.3f, 0.5f, 0.75f, 1f};
+    public static readonly float[] peaksValleysSplineX = new float[]{-1f, -0.9f, -0.75f, -0.6f, -0.4f, -0.2f, 0f, 0.2f, 0.45f, 0.7f, 0.88f, 1f};
+    public static readonly float[] peaksValleysSplineY = new float[]{
+        -3f,  -3f,  -2f,  -1f,   0f,  0f,  1f,  2f,  3f,  4f,  5f,  5f,   // Erosion -1
+        -5f,  -4f,  -3f,  -2f,  -1f,  0f,  1f,  3f,  5f,  7f,  8f,  9f,   // Erosion -0.75
+        -8f,  -7f,  -5f,  -3f,  -1f,  0f,  2f,  5f,  9f, 12f, 14f, 15f,   // Erosion -0.5
+        -12f, -11f, -7f,  -5f,  -4f, -3f,  2f,  7f, 13f, 18f, 21f, 22f,   // Erosion -0.3
+        -15f, -14f, -9f,  -6f,  -5f, -4f,  3f, 10f, 18f, 25f, 29f, 31f,   // Erosion -0.1
+        -18f, -17f, -11f, -10f, -10f, -4f,  5f, 14f, 15f, 30f, 36f, 38f,  // Erosion 0.1
+        -21f, -20f, -13f, -12f, -12f, -3f, 12f, 30f, 32f, 34f, 41f, 46f,  // Erosion 0.3
+        -25f, -24f, -17f, -11f,  -6f, -2f,  6f, 18f, 32f, 45f, 53f, 56f,  // Erosion 0.5
+        -30f, -29f, -14f, -10f,  -8f, -3f,  6f, 20f, 36f, 52f, 62f, 64f,  // Erosion 0.75
+        -32f, -30f, -20f, -12f,  -6f, -1f,  8f, 24f, 42f, 58f, 68f, 72f   // Erosion 1
+    };
+
+    // Erosion -> height of the ridged mountain ranges. The flat segment (0.25 to 0.45) makes many medium foothill ranges before the alpine ones
+    public static readonly float[] mountainAmplitudeSplineX = new float[]{-1f, -0.6f, -0.35f, -0.15f, 0.05f, 0.25f, 0.45f, 0.65f, 0.85f, 1f};
+    public static readonly float[] mountainAmplitudeSplineY = new float[]{0f,  0f,    6f,     20f,    42f,   60f,   66f,   118f,  150f,  172f};
+
+    /*
+    Slope control by Erosion: up to ~0.4 slopes are gradual, then they get steeper towards the alpine terrain.
+    Peaks and Valleys sharpness: how much the flat peaks and valley floors widen. The slope between them is at most this many times
+    the plain slope, so lower = more gradual hillsides. Keep it at 1.6 or more, or peaks and valleys become less common
+    */
+    public static readonly float[] peaksValleysSharpnessSplineX = new float[]{-1f,  -0.4f, 0.1f, 0.4f, 0.65f, 0.85f, 1f};
+    public static readonly float[] peaksValleysSharpnessSplineY = new float[]{1.6f, 1.6f,  1.6f, 1.7f, 2f,    2.6f,  3f};
+    // Mountain sharpness: 0 = wide mountains (half as steep), 1 = narrow mountains with steep sides
+    public static readonly float[] mountainSharpnessSplineX = new float[]{-1f, 0.2f, 0.45f, 0.7f, 0.9f, 1f};
+    public static readonly float[] mountainSharpnessSplineY = new float[]{0f,  0f,   0.25f, 0.65f, 1f,  1f};
+
+    // ---- Hell
+    public static readonly float hellWarpStep = 0.00111f;           // ~900 blocks
+    public static readonly float hellWarpAmplitude = 110f;
+    public static readonly float hellLocalWarpStep = 0.005f;        // ~200 blocks
+    public static readonly float hellLocalWarpAmplitude = 22f;
+    public static readonly float hellBaseStep = 0.000588f;          // ~1700 blocks
+    public static readonly float hellRidgeStep = 0.00667f;          // ~150 blocks
+    public static readonly float hellCeilingStep = 0.0111f;         // ~90 blocks
+    public static readonly float hellCeilingRidgeStep = 0.00909f;   // ~110 blocks
+    public static readonly float hellCeilingSpread = 4.4f;
+    // Erosion -> height of the ridged relief on the Hell floor. Flat segments make regions of similar ridges, steps make sudden changes between them
+    public static readonly float[] hellReliefSplineX = new float[]{-1f, -0.7f, -0.45f, -0.2f, 0.1f, 0.4f, 0.7f, 1f};
+    public static readonly float[] hellReliefSplineY = new float[]{6f,  8f,    13f,    15f,   21f,  28f,  30f,  36f};
+    // Erosion -> length of the ridges hanging from the Hell ceiling
+    public static readonly float[] hellCeilingSplineX = new float[]{-1f, -0.6f, -0.2f, 0.2f, 0.6f, 1f};
+    public static readonly float[] hellCeilingSplineY = new float[]{8f,  12f,   20f,   23f,  30f,  36f};
+
+    // ---- Core
+    public static readonly float coreWarpStep = 0.00143f;           // ~700 blocks
+    public static readonly float coreWarpAmplitude = 80f;
+    public static readonly float coreLocalWarpStep = 0.00625f;      // ~160 blocks
+    public static readonly float coreLocalWarpAmplitude = 18f;
+    public static readonly float coreBaseStep = 0.00238f;           // ~420 blocks
+    public static readonly float coreBottomStep = 0.00417f;         // ~240 blocks
+    public static readonly float coreRidgeStep = 0.00909f;          // ~110 blocks
+    public static readonly float coreDetailStep = 0.0333f;          // ~30 blocks
+    public static readonly float coreDetailAmplitude = 3f;
+    // Erosion -> length of the ridges hanging from the bottom of the Core
+    public static readonly float[] coreHangSplineX = new float[]{-1f, -0.6f, -0.2f, 0.2f, 0.6f, 1f};
+    public static readonly float[] coreHangSplineY = new float[]{3f,  5f,    9f,    11f,  17f,  22f};
+
     // Weather Noise
     public static byte[] weatherNoise = new byte[257];
     public static readonly float weatherNoiseStep = 0.0021f;
@@ -210,6 +333,13 @@ public static class GenerationSeed
             blendNoise[i] = (byte)World.NextRandom(0, 256);
         }
         blendNoise[256] = blendNoise[0];
+
+        // Warp Noise
+        World.SetRNG(seed ^ 0x5BD1E995);
+        for(int i=0; i < 256; i++){
+            warpNoise[i] = (byte)World.NextRandom(0, 256);
+        }
+        warpNoise[256] = warpNoise[0];
     }
 
 

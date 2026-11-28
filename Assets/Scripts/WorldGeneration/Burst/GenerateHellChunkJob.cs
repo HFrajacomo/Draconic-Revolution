@@ -29,6 +29,8 @@ public struct GenerateHellChunkJob: IJob{
     public NativeArray<byte> cavemaskNoise;
     [ReadOnly]
     public NativeArray<byte> temperatureNoise;
+    [ReadOnly]
+    public NativeArray<byte> warpNoise;
 
     [ReadOnly]
     public ushort hellMarbleBlockID;
@@ -43,28 +45,14 @@ public struct GenerateHellChunkJob: IJob{
     }
 
     public void GenerateHeightPivots(){
-        float height, ceilingHeight;
-        float erosionMultiplier;
-        float peakAdd, peakCeiling;
-        float groundSpikiness, ceilingSpikiness;
-
-        int baseCeilingHeight = Chunk.chunkDepth - 8;
-        int ceilingBoost = 8;
-        int hDiv = 15;
-
+        TerrainSample sample;
 
         for(int x=0; x <= Chunk.chunkWidth; x+=4){
             for(int z=0; z <= Chunk.chunkWidth; z+=4){
-                height = NoiseMaker.FindSplineHeight(TransformOctaves(NoiseMaker.Noise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.baseNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.baseNoiseStep1, baseNoise), (NoiseMaker.Noise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.baseNoiseStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.baseNoiseStep2, baseNoise))), NoiseMap.BASE, ChunkDepthID.HELL);
-                ceilingHeight = NoiseMaker.FindSplineHeight(TransformOctaves(NoiseMaker.Noise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.baseNoiseStep3, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.baseNoiseStep3, baseNoise), (NoiseMaker.Noise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.baseNoiseStep4, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.baseNoiseStep4, baseNoise))), NoiseMap.BASE, ChunkDepthID.HELL);
-                erosionMultiplier = NoiseMaker.FindSplineHeight(TransformOctaves(NoiseMaker.Noise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.erosionNoiseStep1, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.erosionNoiseStep1, erosionNoise), NoiseMaker.Noise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.erosionNoiseStep2, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.erosionNoiseStep2, erosionNoise)), NoiseMap.EROSION, ChunkDepthID.HELL);
-                peakAdd = NoiseMaker.FindSplineHeight(TransformOctaves(NoiseMaker.Noise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.peakNoiseStep5, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.peakNoiseStep5, peakNoise), (NoiseMaker.Noise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.peakNoiseStep6, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.peakNoiseStep6, peakNoise))), NoiseMap.PEAK, ChunkDepthID.HELL);
-                peakCeiling = NoiseMaker.FindSplineHeight(TransformOctaves(NoiseMaker.Noise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.peakNoiseStep3, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.peakNoiseStep3, peakNoise), (NoiseMaker.Noise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.peakNoiseStep4, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.peakNoiseStep4, peakNoise))), NoiseMap.PEAK, ChunkDepthID.HELL);
-                groundSpikiness = RemapIntervalGround(NoiseMaker.Noise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.temperatureNoiseStep3, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.temperatureNoiseStep4, temperatureNoise));
-                ceilingSpikiness = RemapIntervalCeiling(NoiseMaker.Noise2D((pos.x*Chunk.chunkWidth+x)*GenerationSeed.temperatureNoiseStep5, (pos.z*Chunk.chunkWidth+z)*GenerationSeed.temperatureNoiseStep6, temperatureNoise));
+                sample = TerrainShape.SampleHell(pos.x*Chunk.chunkWidth+x, pos.z*Chunk.chunkWidth+z, baseNoise, erosionNoise, peakNoise, temperatureNoise, warpNoise);
 
-                heightMap[x*(Chunk.chunkWidth+1)+z] = (ushort)(BedrockClamp(Mathf.Clamp(Mathf.CeilToInt((height + (peakAdd * groundSpikiness)) * erosionMultiplier), 0, Chunk.chunkDepth)));
-                ceilingMap[x*(Chunk.chunkWidth+1)+z] = (ushort)(Mathf.CeilToInt(baseCeilingHeight - ZeroClamp(((peakCeiling * ceilingSpikiness) + ceilingBoost + (ceilingHeight/hDiv)) * erosionMultiplier)));
+                heightMap[x*(Chunk.chunkWidth+1)+z] = (ushort)sample.height;
+                ceilingMap[x*(Chunk.chunkWidth+1)+z] = (ushort)sample.secondary;
             }
         }
     }
@@ -144,36 +132,5 @@ public struct GenerateHellChunkJob: IJob{
                 hpData[index] = ushort.MaxValue;
             }
         }
-    }
-
-    // Calculates the cumulative distribution function of a Normal Distribution
-    private float TransformOctaves(float a, float b){
-        float c = (a+b)/2f;
-
-        return (2f/(1f + Mathf.Exp(-c*4.1f)))-1;
-    }
-
-    // Clamps negative numbers to 1
-    private float ZeroClamp(float number){
-        if(number <= 0)
-            return 1;
-        return number;
-    }
-
-    // Turns heights below 30 to 0
-    private float BedrockClamp(float number){
-        if(number <= 30)
-            return 0;
-        return number;
-    }
-
-    // Remaps -1 to 1 interval to 0.35 to 1
-    private float RemapIntervalGround(float number){
-        return Mathf.Lerp(0.35f, 1f, (number+1)/2);
-    }
-
-    // Remaps -1 to 1 interval to 0.7 to 1
-    private float RemapIntervalCeiling(float number){
-        return Mathf.Lerp(0.7f, 1f, (number+1)/2);
     }
 }

@@ -19,9 +19,9 @@ public static class Constants
 
     // World
     public static readonly float WORLD_COORDINATES_BLOCK_FLOATOFFSET = 0.5f;
-    public static readonly int WORLD_WATER_LEVEL = 80;
-    public static readonly int WORLD_CLAY_MIN_LEVEL = 50;
-    public static readonly int WORLD_CLAY_MAX_LEVEL = 79;
+    public static readonly int WORLD_WATER_LEVEL = 60;
+    public static readonly int WORLD_CLAY_MIN_LEVEL = 30;
+    public static readonly int WORLD_CLAY_MAX_LEVEL = 59;
     public static readonly float WORLD_BLOCK_GRID_DISPLACEMENT = 0.5f;
 
     // Decals

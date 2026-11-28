@@ -6,6 +6,13 @@ public class BiomeTable
 {
     public static int separatorSize = 10;
 
+    // Surface Peaks and Valleys indices that turn Mid biomes into Peak biomes (mountain bands) and Peak biomes into Mid biomes (valley floors)
+    private static readonly int SURFACE_PV_MOUNTAIN_INDEX = 7;
+    private static readonly int SURFACE_PV_VALLEY_INDEX = 2;
+    private static readonly int SURFACE_RUGGED_EROSION_INDEX = 5;
+
+    private ChunkDepthID layer;
+
     private BiomeType[,] baseErosionTable;
 
     private BiomeCode[,] oceanTempHumidTable;
@@ -14,6 +21,8 @@ public class BiomeTable
     private BiomeCode[,] peakTempHumidTable;
 
     public BiomeTable(ChunkDepthID layer){
+        this.layer = layer;
+
         switch(layer){
             case ChunkDepthID.SURFACE:
                 SetupSurfaceBiomes();
@@ -33,16 +42,17 @@ public class BiomeTable
     }
 
     private void SetupSurfaceBiomes(){
+        // Rows: Base (ocean -> inland). Columns: Erosion (flat -> rugged). The coast is around row 4
         this.baseErosionTable = new BiomeType[,]{
             {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN},
             {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN},
             {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN},
-            {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW},
-            {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW},
-            {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW},
-            {BiomeType.OCEAN, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID},
-            {BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID},
+            {BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN, BiomeType.OCEAN},
+            {BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW},
+            {BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID},
             {BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK},
+            {BiomeType.LOW, BiomeType.LOW, BiomeType.LOW, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK},
+            {BiomeType.LOW, BiomeType.LOW, BiomeType.MID, BiomeType.MID, BiomeType.MID, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK},
             {BiomeType.LOW, BiomeType.LOW, BiomeType.MID, BiomeType.MID, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK, BiomeType.PEAK},
         };
 
@@ -304,6 +314,9 @@ public class BiomeTable
     public BiomeCode GetBiome(float5 data){
         BiomeType type = this.baseErosionTable[data.b, data.e];
 
+        if(this.layer == ChunkDepthID.SURFACE)
+            type = RefineSurfaceType(type, data);
+
         if(type == BiomeType.OCEAN)
             return this.oceanTempHumidTable[data.t, data.h];
         else if(type == BiomeType.LOW)
@@ -314,5 +327,15 @@ public class BiomeTable
             return this.peakTempHumidTable[data.t, data.h];
         else
             return BiomeCode.DESERT;
+    }
+
+    // Mountain ranges follow the Peaks and Valleys bands, so rugged Mid land on a peak band is a Peak biome and valley floors between peaks are Mid
+    private BiomeType RefineSurfaceType(BiomeType type, float5 data){
+        if(type == BiomeType.MID && data.p >= SURFACE_PV_MOUNTAIN_INDEX && data.e >= SURFACE_RUGGED_EROSION_INDEX)
+            return BiomeType.PEAK;
+        if(type == BiomeType.PEAK && data.p <= SURFACE_PV_VALLEY_INDEX)
+            return BiomeType.MID;
+
+        return type;
     }
 }

@@ -178,7 +178,7 @@
 					"quantity": 5,
 					"chance": 1.0,
 					"depth": 0,
-					"hardSetDepth": 90,
+					"hardSetDepth": 70,
 					"hasRange": true,
 					"minHeight": 0
 				},
@@ -187,7 +187,7 @@
 					"quantity": 5,
 					"chance": 1.0,
 					"depth": 0,
-					"hardSetDepth": 90,
+					"hardSetDepth": 70,
 					"hasRange": true,
 					"minHeight": 0
 				},
@@ -196,7 +196,7 @@
 					"quantity": 5,
 					"chance": 1.0,
 					"depth": 0,
-					"hardSetDepth": 90,
+					"hardSetDepth": 70,
 					"hasRange": true,
 					"minHeight": 0
 				},
@@ -232,7 +232,7 @@
 					"quantity": 10,
 					"chance": 1.0,
 					"depth": 0,
-					"hardSetDepth": 120,
+					"hardSetDepth": 100,
 					"hasRange": true,
 					"minHeight": 0
 				},
@@ -241,7 +241,7 @@
 					"quantity": 10,
 					"chance": 1.0,
 					"depth": 0,
-					"hardSetDepth": 120,
+					"hardSetDepth": 100,
 					"hasRange": true,
 					"minHeight": 0
 				},
@@ -250,7 +250,7 @@
 					"quantity": 6,
 					"chance": 1.0,
 					"depth": 0,
-					"hardSetDepth": 100,
+					"hardSetDepth": 80,
 					"hasRange": true,
 					"minHeight": 0
 				},
@@ -259,7 +259,7 @@
 					"quantity": 6,
 					"chance": 1.0,
 					"depth": 0,
-					"hardSetDepth": 100,
+					"hardSetDepth": 80,
 					"hasRange": true,
 					"minHeight": 0
 				},
@@ -268,7 +268,7 @@
 					"quantity": 3,
 					"chance": 0.5,
 					"depth": 0,
-					"hardSetDepth": 60,
+					"hardSetDepth": 40,
 					"hasRange": true,
 					"minHeight": 0
 				},
@@ -277,7 +277,7 @@
 					"quantity": 3,
 					"chance": 0.5,
 					"depth": 0,
-					"hardSetDepth": 60,
+					"hardSetDepth": 40,
 					"hasRange": true,
 					"minHeight": 0
 				},
@@ -286,7 +286,7 @@
 					"quantity": 1,
 					"chance": 0.5,
 					"depth": 0,
-					"hardSetDepth": 60,
+					"hardSetDepth": 40,
 					"hasRange": true,
 					"minHeight": 0
 				},
@@ -295,7 +295,7 @@
 					"quantity": 1,
 					"chance": 0.5,
 					"depth": 0,
-					"hardSetDepth": 60,
+					"hardSetDepth": 40,
 					"hasRange": true,
 					"minHeight": 0
 				},
@@ -304,7 +304,7 @@
 					"quantity": 1,
 					"chance": 0.5,
 					"depth": 0,
-					"hardSetDepth": 60,
+					"hardSetDepth": 40,
 					"hasRange": true,
 					"minHeight": 0
 				},
@@ -313,7 +313,7 @@
 					"quantity": 1,
 					"chance": 0.5,
 					"depth": 0,
-					"hardSetDepth": 60,
+					"hardSetDepth": 40,
 					"hasRange": true,
 					"minHeight": 0
 				},
@@ -322,7 +322,7 @@
 					"quantity": 1,
 					"chance": 0.5,
 					"depth": 0,
-					"hardSetDepth": 60,
+					"hardSetDepth": 40,
 					"hasRange": true,
 					"minHeight": 0
 				},
@@ -331,7 +331,7 @@
 					"quantity": 1,
 					"chance": 0.5,
 					"depth": 0,
-					"hardSetDepth": 60,
+					"hardSetDepth": 40,
 					"hasRange": true,
 					"minHeight": 0
 				},
@@ -340,7 +340,7 @@
 					"quantity": 1,
 					"chance": 0.5,
 					"depth": 0,
-					"hardSetDepth": 60,
+					"hardSetDepth": 40,
 					"hasRange": true,
 					"minHeight": 0
 				},
@@ -349,7 +349,7 @@
 					"quantity": 1,
 					"chance": 0.5,
 					"depth": 0,
-					"hardSetDepth": 60,
+					"hardSetDepth": 40,
 					"hasRange": true,
 					"minHeight": 0
 				},
@@ -358,7 +358,7 @@
 					"quantity": 1,
 					"chance": 0.5,
 					"depth": 0,
-					"hardSetDepth": 60,
+					"hardSetDepth": 40,
 					"hasRange": true,
 					"minHeight": 0
 				},
@@ -367,7 +367,7 @@
 					"quantity": 1,
 					"chance": 0.5,
 					"depth": 0,
-					"hardSetDepth": 60,
+					"hardSetDepth": 40,
 					"hasRange": true,
 					"minHeight": 0
 				},
@@ -376,7 +376,7 @@
 					"quantity": 1,
 					"chance": 0.5,
 					"depth": 0,
-					"hardSetDepth": 60,
+					"hardSetDepth": 40,
 					"hasRange": true,
 					"minHeight": 0
 				},
@@ -385,7 +385,7 @@
 					"quantity": 1,
 					"chance": 0.5,
 					"depth": 0,
-					"hardSetDepth": 60,
+					"hardSetDepth": 40,
 					"hasRange": true,
 					"minHeight": 0
 				}

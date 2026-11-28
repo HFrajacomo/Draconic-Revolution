@@ -29,36 +29,62 @@ Okay, we have procedurally generated numbers now. What is next?
 **Noise Maps**, of course!
 
 We can consistently generate noise fields to generate and mix different terrain traits!
-We have a total of 9 Noise Maps:
+We have a total of 10 Noise Maps:
 
- 1. Base Map (a.k.a. base height map)
+ 1. Base Map (base height)
  2. Erosion Map
- 3. Peaks Map
+ 3. Peaks Map (Peaks and Valleys + Ridges)
  4. Temperature Map
  5. Humidity Map
  6. Patch Map
  7. Cave Map
  8. Cave Mask Map
  9. Blend Map
+ 10. Warp Map
 
 ### The Surface
-To generate the surface terrain, **Base, Erosion** and **Peaks** maps are used. High base values make the terrain higher or lower. Higher erosion makes the terrain more flat and lower, while low erosion makes it higher and more prone to microchanges. High peak values make sudden high lands and low peak values dig out water ways like rivers.
+Basic Perlin noise makes terrain out of round blobs. To get wild, Tectonic-like terrain, the Surface is built by `TerrainShape` out of 4 ideas:
+
+ 1. **Better noise:** `TerrainNoise` uses Perlin noise with 16 gradient directions (instead of 4 diagonals, which leave a 45° bias) and real **fBm**: 3 to 5 octaves, each with double the frequency and half the weight of the previous one. Every octave is also rotated and shifted, so octaves never line up on the same grid.
+ 2. **Domain warping:** before sampling, positions are moved by a smooth noise offset from the **Warp** Map. A large, slow warp (~220 blocks) bends coastlines, erosion and climate, and a small one (~36 blocks) bends ridges and valleys. Nothing ends up circular anymore. The warp is kept slower than the position changes, so it never folds the terrain.
+ 3. **Peaks and Valleys + Ridges:** the Peaks Map is folded with `1 - |3|w| - 2|`, turning blobs into long bands: valleys follow the lines where the noise crosses zero, and peak bands run next to them. The folded value is then reshaped with `1 - (1 - |pv|)^sharpness`, which widens the flat peaks and valley floors so they are common, while keeping the slope between them bounded. On top of those bands, **ridged noise** draws continuous mountain crests.
+
+	**Slopes depend on Erosion:** the sharpness comes from a spline of Erosion, so hillsides are gradual up to medium Erosion and get steeper towards alpine terrain. Mountains blend between a wide ridge field (gentle slopes) and a narrow one (steep slopes), also by an Erosion spline: foothill ranges are broad, and alpine ranges are sharp.
+ 4. **Nested splines:** the final height is a sum of splines:
+	- **Base** sets the base height: ocean floor, coast (around -0.14) and inland. Past a narrow coastal shelf the ocean drops fast, so most of it is deep water. Flat and steep segments of its spline add landforms along the Base contours: an undersea ridge, wide beaches, inland plains ending in an escarpment, and upland and high plateaus.
+	- **Hills and valleys** come from a Peaks and Valleys spline that is itself chosen by **Erosion**. Every Erosion key has its own spline, and the result blends the 2 around the Erosion value. Each erosion range has its own landform: gentle plains, benched hills, terraced hills, mesas, deep valleys, canyons and alpine peaks. Valleys that dig below sea level flood into long lakes and inlets.
+	- **Mountains** are ridged crests whose height is a spline of Erosion. They only grow inland, on peak bands.
+	- A little **detail** noise, stronger on rugged land.
+
+Erosion goes from flat (-1) to rugged (1). Sea level is 60 (`Constants.WORLD_WATER_LEVEL`). Heights above 210 are smoothly compressed towards 240, so mountain tops never become flat plateaus and trees still fit in the chunk.
+
+All the frequencies, amplitudes and spline knots live in `GenerationSeed`, so the terrain can be tuned without touching the generation code.
+
+### The Hell and the Core
+Hell and Core use the same noise tools, with their own warps:
+
+- **Hell** keeps its original floor and ceiling splines, erosion multiplier and Deep Cliffs (open floors). Its floor relief now comes from ridged noise instead of round bumps, so it has jagged ridges, and the ceiling has ridges hanging from it.
+- **Core** keeps its original top and bottom splines and the erosion pits. Its shapes are warped and ridges hang from its bottom.
 
 ### The Biomes
-To figure out what biome should be placed in what given chunk, the **Base, Erosion, Temperature** and **Humidity** maps are used.
+To figure out what biome should be placed in what given chunk, the **Base, Erosion, Temperature** and **Humidity** maps are used. Surface, Hell and Core biomes read the exact same Base, Erosion and Peaks and Valleys values (from `TerrainShape`) that their terrain is built with, at the chunk center, so biomes always match the terrain. Temperature and Humidity are sampled at the warped position, so climate regions bend along with the land.
 
-The biomes are categorized in height types first, like **Ocean-like, Low, Mid, Peak** and put up against a value table comparing Base and Erosion maps.
+The biomes are categorized in height types first, like **Ocean-like, Low, Mid, Peak** and put up against a value table comparing Base and Erosion maps. This is the Surface one:
 
 |Base vs Erosion|0.0| 0.2| 0.4 |0.6|0.8|1|
 |--|--|--|--|--|--|--|
 |0.0|Ocean|Ocean|Ocean|Ocean|Ocean|Ocean|
 |0.2|Ocean|Ocean|Ocean|Ocean|Ocean|Ocean|
-|0.4|Ocean|Ocean|Ocean|Ocean|Low|Low|
-|0.6|Ocean|Ocean|Ocean|Low|Low|Mid|
-|0.8|Ocean|Mid|Mid|Peak|Peak|Peak|
-|1|Ocean|Mid|Peak|Peak|Peak|Peak|
+|0.4|Low|Low|Low|Low|Low|Low|
+|0.6|Low|Low|Mid|Mid|Peak|Peak|
+|0.8|Low|Mid|Mid|Peak|Peak|Peak|
+|1|Low|Mid|Peak|Peak|Peak|Peak|
+
+On the Surface, the Peaks and Valleys value refines it: rugged Mid land on a peak band becomes Peak, and Peak land on a valley floor becomes Mid.
 
 Once the type of biome is resolved, every biome type has a Temperature vs Humidity table similar to the above to define what biome it is.
+
+The Underground keeps its original 2-octave Perlin values.
 
 ### The Underground
 To dig out caves, lots of techniques were planned: **simple 3D perlin subtraction, Topology Analysis State Machine Cluster™** (TASMC, which was discarded, but deserved a Game Detail document of its own!) **and Conditional Noise Slices**. None of them achieved the desired result.
@@ -86,9 +112,9 @@ In order to make the terrain more interesting and have more variation and more *
 
 ## Octaves and Sigmoid Approximation Transformation
 Sampling multiple Noise Maps that apply different traits to a terrain can generate interesting terrain. But having multiple different samplings from the same map can add even more detail. These additional samplings are called ***Octaves***.
-Currently, the maps have the base sampling and one octave.
+The Surface, Hell and Core terrain use fBm (see *The Surface*): 3 to 5 rotated octaves, each with half the weight of the previous one. The Underground and the climate maps still use the base sampling and one octave.
 
-Since we use the mean of the sum of the samples, the Random() function's distribution goes from Uniform to Normal. To transform the octave sum result back to a Uniform distribution, we use Sigmoid Approximation, which is the computationally fastest and closest we can get to a Normal transformation.
+Since we use the weighted mean of the samples, the Random() function's distribution goes from Uniform to Normal. To transform the octave sum result back to a Uniform distribution, we use Sigmoid Approximation, which is the computationally fastest and closest we can get to a Normal transformation. More octaves give a narrower bell, so every fBm map has its own sigmoid gain in `GenerationSeed`.
 
 ## Bilinear Interpolation
 
