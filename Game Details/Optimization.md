@@ -86,6 +86,30 @@ Be aware that Unity won't be capable of using every single lib or dll the underl
 
 \*PInvoking = Building manual support for underlying dll/syscall imports inside C# code.
 
+# GPU Hangs (TDR)
+
+A GPU hang looks like a crash with no error: builds die, and the Editor freezes and closes without a log or exception. This is Windows' TDR (Timeout Detection and Recovery). When the GPU takes more than about 2 seconds on a command, Windows resets the driver and the game loses its graphics device. C# and Burst code never throw in this case, so the cause has to be found with GPU tools.
+
+**How to recognize it**
+- `Player.log` or the crash copy in `%LOCALAPPDATA%\Temp\Miraboa Studios\Draconic Revolution\Crashes\` has `Device removed reason (887a0006)` (`DXGI_ERROR_DEVICE_HUNG`), and the stack trace ends inside the GPU driver (`nvwgf2umx.dll` on NVIDIA).
+- The Windows Event Viewer has `nvlddmkm` errors (System log) and `LiveKernelEvent` 141 reports (Application log) at the time of the crash.
+- The first D3D12 call that fails is usually unrelated to the cause, like a buffer creation. It's just the first call made after the device was lost.
+
+**How to find the cause**
+1. **Breadcrumbs:** install the optional Windows feature "Graphics Tools". From an admin terminal, register the game with `d3dconfig apps --add "Draconic Revolution.exe"` (D3DConfig settings only affect registered apps; add `Unity.exe` to debug the Editor), then run `d3dconfig dred --force-on-all`, which turns on auto-breadcrumbs, breadcrumb contexts, page faults and DRED data in Windows crash dumps (`d3dconfig dred --help` lists every option).
+   DRED keeps its data in the heap of the process, which minidumps (Unity's `crash.dmp`, and the default Windows dump) don't have. So also make Windows write full dumps of the game: `reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\Draconic Revolution.exe" /v DumpType /t REG_DWORD /d 2 /f` (dumps go to `%LOCALAPPDATA%\CrashDumps`, a few GB each).
+   Reproduce the crash and open the full dump in WinDbg. Load Microsoft's DRED script (`D3DDred-WinDbg/D3DDred.js` from the `microsoft/DirectX-Debugging-Tools` GitHub repository) with `.scriptload <path>\D3DDred.js`, then run `!d3ddred`. `dx -r2 @$d3ddred().AutoBreadcrumbNodes[0].OutstandingOps` shows the render operations the GPU hadn't finished. On NVIDIA GPUs, *Nsight Aftermath Monitor* gives the same information, including the shader. Afterwards, run `d3dconfig dred --force-sys-controlled-all` and delete that `LocalDumps` key to turn it all back off.
+2. **A/B runs:** run the same build with `-force-gfx-direct` (no Graphics Jobs), with `-force-d3d11`, and with a lower `render_distance` in `config.cfg`. Write down which runs still crash.
+
+The local Server runs headless (`-batchmode -nographics`, see *Networking.md*), so it never holds a graphics device of its own. Any GPU hang comes from the Client.
+
+**Known cause: split graphics jobs.** On Unity 6000.0.25f1 (D3D12, NVIDIA RTX 3070), the Client hung the GPU within seconds to minutes of streaming new chunks, and the Editor froze the same way. A/B runs confirmed the cause:
+- Default mode, Graphics Jobs on in Split mode (`kGfxThreadingModeSplitJobs`): crashed every few minutes.
+- With `-force-gfx-direct`: no crashes and no driver errors.
+- With DRED fully on (`--force-on-all`): no crashes either. Its extra synchronization hides the problem, so never test with DRED on to decide whether a hang is fixed.
+
+The full dump showed every job worker recording draws in `GfxDeviceWorker::RunCommand` when the device was lost. If it comes back, try a newer Unity 6000.0 patch first. Otherwise disable Graphics Jobs for the Windows build (Player Settings, `WindowsStandaloneSupport: m_GraphicsJobs`) and for the Editor (Preferences > Job Settings). Rendering then still runs on its own render thread (`m_MTRendering`).
+
 # Congratulations
 
 Now you know a little bit more about Optimization, be happy that you are running the game at a solid FPS rate. Seriously, if you are trying to develop a game, optimize it as you go. **Do not leave the optimization to be done later in development!!**

@@ -3,6 +3,8 @@
 Draconic Revolution uses its own TCP protocol (`System.Net.Sockets`). Even singleplayer runs a local Server process that the Client connects to.
 Client and Server are always built together from the same project, so message layouts and `NetCode` values can change freely between versions.
 
+The local Server (`Redirector` in the Editor, `invisLaunchHelper.bat` written by `EnvironmentVariablesCentral` in builds) is started headless with `-batchmode -nographics -Local -World <name>`, so it never creates a graphics device of its own that competes with the Client for the GPU. Server code must not need a GPU: rendering, textures and graphics buffers stay behind `isClient`. Headless, `FPSLimiter` turns vSync off so its `targetFrameRate` caps the Server's ticks.
+
 ## Classes
 
 | Class | Role |

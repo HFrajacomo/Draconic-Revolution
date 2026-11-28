@@ -65,9 +65,9 @@ public class Redirector : MonoBehaviour
             #if UNITY_EDITOR
                 bool started = false;
 
-                // Startup local server
+                // Startup local server. Headless, so it doesn't create a second graphics device competing with the client for the GPU
                 this.lanServerProcess = new Process();
-                this.lanServerProcess.StartInfo.Arguments = $"-Local -World {World.worldName}";
+                this.lanServerProcess.StartInfo.Arguments = $"-batchmode -nographics -Local -World {World.worldName}";
                 this.lanServerProcess.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
 
                 if(File.Exists(EnvironmentVariablesCentral.serverDir + serverFile))
