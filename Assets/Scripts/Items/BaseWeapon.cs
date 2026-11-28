@@ -23,6 +23,7 @@ public abstract class BaseWeapon : Item {
 	public uint currentDurability;
 	public ushort impact;
 	public string weaponType;
+	[System.NonSerialized]
 	public Dictionary<SkillType, byte> requiredLevels;
 
 	private WeaponType type;

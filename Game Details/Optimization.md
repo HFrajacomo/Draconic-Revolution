@@ -108,7 +108,7 @@ The local Server runs headless (`-batchmode -nographics`, see *Networking.md*), 
 - With `-force-gfx-direct`: no crashes and no driver errors.
 - With DRED fully on (`--force-on-all`): no crashes either. Its extra synchronization hides the problem, so never test with DRED on to decide whether a hang is fixed.
 
-The full dump showed every job worker recording draws in `GfxDeviceWorker::RunCommand` when the device was lost. If it comes back, try a newer Unity 6000.0 patch first. Otherwise disable Graphics Jobs for the Windows build (Player Settings, `WindowsStandaloneSupport: m_GraphicsJobs`) and for the Editor (Preferences > Job Settings). Rendering then still runs on its own render thread (`m_MTRendering`).
+The full dump showed every job worker recording draws in `GfxDeviceWorker::RunCommand` when the device was lost. The project was then upgraded to Unity 6000.6.11f1, which has many DX12 Graphics Jobs fixes, but Unity's open bug UUM-153790 (a D3D12 device hang with split or native Graphics Jobs, gone with `-force-gfx-direct`) still reproduces on 6000.6. Re-test after every Unity upgrade without `-force-gfx-direct` and with DRED off. If the hang is still there, disable Graphics Jobs for the Windows build (Player Settings, `WindowsStandaloneSupport: m_GraphicsJobs`) and for the Editor (Preferences > Job Settings). Rendering then still runs on its own render thread (`m_MTRendering`).
 
 # Congratulations
 

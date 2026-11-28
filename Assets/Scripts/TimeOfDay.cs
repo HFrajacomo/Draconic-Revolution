@@ -6,7 +6,9 @@ using UnityEngine.Rendering;
 
 public class TimeOfDay : MonoBehaviour
 {
+    [System.NonSerialized]
     public Server server;
+    [System.NonSerialized]
     public Client client;
     public static readonly byte tickRate = 40;
     public static readonly float timeRate = 1f/TimeOfDay.tickRate;

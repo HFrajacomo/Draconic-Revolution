@@ -17,6 +17,7 @@ public class Redirector : MonoBehaviour
     private static bool SERVER_STARTED = false;
 
     // Windows External Process
+    [System.NonSerialized]
     public Process lanServerProcess;
 
     // Const Strings

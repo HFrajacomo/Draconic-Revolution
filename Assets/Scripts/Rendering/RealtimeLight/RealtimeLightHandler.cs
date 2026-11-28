@@ -520,7 +520,7 @@ public class RealtimeLightHandler : MonoBehaviour {
 				this.volumetricFadeDistance = data.volumetricFadeDistance;
 				this.volumetricDimmer = data.volumetricDimmer;
 				this.lightDimmer = data.lightDimmer;
-				this.shapeRadius = data.shapeRadius;
+				this.shapeRadius = light.shapeRadius;
 				this.affectDiffuse = data.affectDiffuse;
 				this.affectSpecular = data.affectSpecular;
 			}
@@ -545,7 +545,7 @@ public class RealtimeLightHandler : MonoBehaviour {
 			data.volumetricFadeDistance = this.volumetricFadeDistance;
 			data.volumetricDimmer = this.volumetricDimmer;
 			data.lightDimmer = this.lightDimmer;
-			data.shapeRadius = this.shapeRadius;
+			light.shapeRadius = this.shapeRadius;
 			data.affectDiffuse = this.affectDiffuse;
 			data.affectSpecular = this.affectSpecular;
 		}

@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+// Serializable so JsonUtility always reads these fields when deserializing derived classes from INVENTORIES.json and ACTION_INVENTORIES.json
+[Serializable]
 public abstract class BaseInventory {
 	public bool itemInventory;
 	public string inventoryType;

@@ -19,9 +19,13 @@ public class ChunkLoader : MonoBehaviour
 	public int renderDistance = 0;
 	public Transform player;
     public Transform cam;
+	[System.NonSerialized]
 	public ChunkPos currentChunk;
+    [System.NonSerialized]
     public ChunkPriorityQueue updatePriorityQueue = new ChunkPriorityQueue(DistanceMetric.EDGE_LIMITING, edgeLimit:World.renderDistance);
+    [System.NonSerialized]
     public ChunkPriorityQueue drawPriorityQueue = new ChunkPriorityQueue(DistanceMetric.EDGE_LIMITING, edgeLimit:World.renderDistance);
+    [System.NonSerialized]
     public ChunkPriorityQueue updateNoLightPriorityQueue = new ChunkPriorityQueue(DistanceMetric.EDGE_LIMITING, edgeLimit:World.renderDistance);
 
     // Chunk Streaming
@@ -53,7 +57,9 @@ public class ChunkLoader : MonoBehaviour
     public VFXLoader vfx;
     public TimeOfDay time;
     public GameObject gameUI;
+    [System.NonSerialized]
     public Client client;
+    [System.NonSerialized]
     public BiomeHandler biomeHandler = new BiomeHandler(true);
     public PlayerMovement playerMovement;
     public PlayerSheetController playerSheetController;
@@ -70,6 +76,7 @@ public class ChunkLoader : MonoBehaviour
     public AmbientHandler ambientHandler;
     public VignetteController vignetteController;
     public GameObject audioListenerObject;
+    [System.NonSerialized]
     public PlacementPredictor placementPredictor;
 
     // Initialization
@@ -81,6 +88,7 @@ public class ChunkLoader : MonoBehaviour
 	public ChunkRenderer rend;
 
     // Animated Objects of every chunk (see ChunkAnimatedObjects)
+    [System.NonSerialized]
     public AnimatedObjectHandler animatedObjects;
 
     // Contact shadows of dropped items

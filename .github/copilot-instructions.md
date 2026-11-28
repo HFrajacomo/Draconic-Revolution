@@ -17,7 +17,7 @@ Team values: favor the *best* solution over the fastest one. There are no hard d
 
 ## Tech Stack
 
-- Unity **6000.0.25f1** (Unity 6) with the **HDRP** render pipeline (`com.unity.render-pipelines.high-definition` 17.0.3).
+- Unity **6000.6.11f1** (Unity 6.6) with the **HDRP** render pipeline (`com.unity.render-pipelines.high-definition` 17.6.0). HDRP's shader config is an embedded package (`LocalPackages/com.unity.render-pipelines.high-definition-config`) whose only customization is `FPTLMaxLightCount = Higher` (127 lights per tile, used by `RealtimeLightHandler`); keep its version in step with HDRP when upgrading Unity.
 - Burst plus Jobs/`NativeArray` for chunk meshing, lighting and world generation. Also used: Input System, Animation Rigging, AI Navigation and UI Toolkit.
 - Networking is **custom raw TCP sockets** (`System.Net.Sockets`), not Netcode/Mirror. Even singleplayer runs a local server process.
 - See [Packages/manifest.json](../Packages/manifest.json) for dependencies.
@@ -66,7 +66,7 @@ Match the existing C# style (see [NetMessage.cs](../Assets/Scripts/Networking/Ne
 
 ## Build and Validation
 
-- There is **no CLI build and no automated test suite**. Code is compiled and validated by opening the project in the Unity Editor (6000.0.25f1). Builds go to `Build/`, which is git-ignored.
+- There is **no CLI build and no automated test suite**. Code is compiled and validated by opening the project in the Unity Editor (6000.6.11f1). Builds go to `Build/`, which is git-ignored.
 - Do not touch `Library/`, `Logs/`, `Temp/` or generated `*.csproj`/`*.sln` files.
 - When adding or moving assets, keep the matching `.meta` files and never regenerate or alter existing GUIDs, because this breaks scene and prefab references.
 - Helper Python scripts are in [DevScripts/](../DevScripts/) for code generation and checks.

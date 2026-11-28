@@ -14,12 +14,16 @@ public class ChunkLoader_Server : MonoBehaviour
 	// Basic ChunkLoader Data
 	public int unloadAssetsCount = 25;
 	private Dictionary<ChunkPos, Chunk> chunks = new Dictionary<ChunkPos, Chunk>();
+	[System.NonSerialized]
 	public ChunkPos currentChunk;
+	[System.NonSerialized]
 	public ChunkPos newChunk;
     public BUDScheduler budscheduler;
     public VFXLoader vfx;
     public TimeOfDay time;
+    [System.NonSerialized]
     public WorldGenerator worldGen;
+    [System.NonSerialized]
     public Server server;
 
     // Generation Queue, fed by the ChunkStreamer
@@ -35,17 +39,24 @@ public class ChunkLoader_Server : MonoBehaviour
     private List<GenerationSlot> pendingGeneration = new List<GenerationSlot>();
     private HashSet<ChunkPos> pendingGenerationSet = new HashSet<ChunkPos>();
     private System.Diagnostics.Stopwatch loadStopwatch = new System.Diagnostics.Stopwatch();
+    [System.NonSerialized]
     public Dictionary<ChunkPos, HashSet<ulong>> loadedChunks = new Dictionary<ChunkPos, HashSet<ulong>>();
 
 	// World Generation
 	public int worldSeed = -1; // 6 number integer
+    [System.NonSerialized]
     public BiomeHandler biomeHandler;
 
 	// Persistence
+    [System.NonSerialized]
     public RegionFileHandler regionHandler;
+    [System.NonSerialized]
     public EntityFileHandler entityFileHandler;
+    [System.NonSerialized]
     public ContainerHandler_Server containerHandler;
+    [System.NonSerialized]
     public PlayerServerInventory playerServerInventory;
+    [System.NonSerialized]
     public CharacterFileHandler characterFileHandler;
 
 	// Flags

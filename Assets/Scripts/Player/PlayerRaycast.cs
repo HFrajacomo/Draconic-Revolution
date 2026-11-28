@@ -16,6 +16,7 @@ public class PlayerRaycast : MonoBehaviour
 
 	public ChunkLoader loader;
 	private Vector3 cachePos;
+	[System.NonSerialized]
 	public CastCoord current;
 	private CastCoord previousCoord;
 	private CastCoord lastCoord;

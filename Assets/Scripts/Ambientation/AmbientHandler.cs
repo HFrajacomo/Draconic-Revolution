@@ -8,6 +8,7 @@ using Unity.Mathematics;
 public class AmbientHandler : MonoBehaviour
 {
     // Weather Reference
+    [System.NonSerialized]
     public WeatherCast weatherCast = new WeatherCast();
 
     // Unity References

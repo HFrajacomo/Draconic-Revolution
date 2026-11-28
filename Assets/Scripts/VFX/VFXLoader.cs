@@ -5,10 +5,14 @@ using UnityEngine.Rendering.HighDefinition;
 
 public class VFXLoader : MonoBehaviour
 {
+	[System.NonSerialized]
 	public Dictionary<ChunkPos, Dictionary<string, GameObject>> data;
+    [System.NonSerialized]
     public Dictionary<ChunkPos, List<HDAdditionalLightData>> lightReference;
+    [System.NonSerialized]
     public Dictionary<ChunkPos, Dictionary<string, NetMessage>> serverVFX;
 
+    [System.NonSerialized]
     public Dictionary<ulong, Dictionary<string, GameObject>> entityData;
 
     private RealtimeLightHandler realtimeLightHandler;

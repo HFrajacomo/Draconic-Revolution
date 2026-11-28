@@ -8,12 +8,12 @@ The cooking options must match the ones of the MeshColliders, otherwise the mesh
 */
 public struct BakeColliderJob : IJobParallelFor{
 	[ReadOnly]
-	public NativeArray<int> meshIDs;
+	public NativeArray<EntityId> meshIDs;
 	[ReadOnly]
 	public MeshColliderCookingOptions cookingOptions;
 
 	public void Execute(int index){
-		if(meshIDs[index] != 0)
+		if(meshIDs[index] != EntityId.None)
 			Physics.BakeMesh(meshIDs[index], false, cookingOptions);
 	}
 }

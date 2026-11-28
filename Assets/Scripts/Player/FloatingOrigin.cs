@@ -72,7 +72,7 @@ public class FloatingOrigin {
 
 	// Local and Custom space particles move with their transforms, World space ones keep absolute Unity positions
 	private void ShiftWorldSpaceParticles(Vector3 delta){
-		ParticleSystem[] systems = Object.FindObjectsByType<ParticleSystem>(FindObjectsSortMode.None);
+		ParticleSystem[] systems = Object.FindObjectsByType<ParticleSystem>();
 		int count;
 
 		for(int i=0; i < systems.Length; i++){

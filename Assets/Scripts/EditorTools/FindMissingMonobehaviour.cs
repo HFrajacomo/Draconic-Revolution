@@ -15,7 +15,7 @@ public static class FindMissingMonobehaviour {
 			int missingCount = 0;
 
 			// Scan scene objects
-			GameObject[] allSceneObjects = GameObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+			GameObject[] allSceneObjects = GameObject.FindObjectsByType<GameObject>();
 			foreach (GameObject obj in allSceneObjects)
 			{
 				missingCount += ScanGameObject(obj, obj.scene.name);
