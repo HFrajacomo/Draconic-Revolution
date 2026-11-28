@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -32,6 +33,7 @@ public class PlayerMovement : MonoBehaviour
     public float gravityMomentum;
 
     // Flags
+    [NonSerialized]
     public MovementFlags? flags;
     // From the moment a jump fires until the player lands. Walking or sliding off a ledge never sets it
     private bool inJump;
